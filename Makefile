@@ -21,5 +21,5 @@ initrd.cpio: init
 	find init -print0 | cpio --null --create --verbose --format=newc > $@
 	chmod +x $@
 
-init: init.c
-	cc -static $^ -o $@
+init: init.go
+	go build -o $@ $^

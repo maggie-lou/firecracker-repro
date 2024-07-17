@@ -41,7 +41,7 @@ curlfc PUT /logger '{
 
 curlfc PUT /boot-source '{
   "kernel_image_path": "./vmlinux",
-  "boot_args": "ro console=ttyS0 noapic reboot=k panic=1 pci=off nomodule random.trust_cpu=on i8042.noaux i8042.nomux i8042.nopnp i8042.dumbkbd tsc=reliable ipv6.disable=1",
+  "boot_args": "ro console=ttyS0 noapic reboot=k panic=1 pci=off nomodule random.trust_cpu=on i8042.noaux i8042.nomux i8042.nopnp i8042.dumbkbd tsc=reliable ipv6.disable=1 lapic=notscdeadline",
   "initrd_path": "./initrd.cpio"
 }'
 
@@ -50,38 +50,5 @@ curlfc PUT /actions '{"action_type": "InstanceStart"}'
 tail -f "$LOGFILE" &
 TAIL_PID=$!
 
-for i in $(seq 100); do
-  echo "--- Round $i: Letting the VM run for a little while ..."
-  sleep 1
+sleep 30
 
-  curlfc PATCH /vm '{"state": "Paused"}'
-
-  rm -rf "$SNAPSHOT_PATH" "$MEM_FILE_PATH"
-
-  curlfc PUT /snapshot/create '{
-    "snapshot_type": "Full",
-    "snapshot_path": "'$SNAPSHOT_PATH'",
-    "mem_file_path": "'$MEM_FILE_PATH'"
-  }'
-
-  echo '--- Stopping and restarting firecracker ...'
-  kill -TERM $FIRECRACKER_PID
-  wait $FIRECRACKER_PID || true
-  rm -f "$API_SOCKET"
-  ./firecracker --api-sock "$API_SOCKET" &
-  FIRECRACKER_PID=$!
-
-  curlfc PUT /logger '{
-    "log_path": "'$LOGFILE'"
-  }'
-
-  echo '--- Loading snapshot and resuming VM ...'
-  curlfc PUT /snapshot/load '{
-    "snapshot_path": "'$SNAPSHOT_PATH'",
-    "mem_backend": {
-      "backend_type": "File",
-      "backend_path": "'$MEM_FILE_PATH'"
-    },
-    "resume_vm": true
-  }'
-done

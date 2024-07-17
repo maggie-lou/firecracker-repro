@@ -1,1 +1,1 @@
-https://s3.amazonaws.com/spec.ccfc.min/img/hello/kernel/hello-vmlinux.bin
+https://storage.googleapis.com/buildbuddy-tools/binaries/linux/vmlinux-v5.15-7b747e5a7c487473b653f7d91953ccc61f51699055b32974e8e2864a0ec6edd0
